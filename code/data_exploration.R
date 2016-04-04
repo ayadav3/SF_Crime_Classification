@@ -321,7 +321,9 @@ head(test)
 gc()
 
 #Build submission.
-submit <- data.frame(predict(model,test, proba = TRUE)$probabilities[, levels(target)])\
+submit <- data.frame(predict(model,test, proba = TRUE)$probabilities[, levels(target)])
 submit$Id <- seq.int(0,nrow(submit)-1)
 colnames(submit) <- c("ARSON","ASSAULT","BAD CHECKS","BRIBERY","BURGLARY","DISORDERLY CONDUCT","DRIVING UNDER THE INFLUENCE","DRUG/NARCOTIC","DRUNKENNESS","EMBEZZLEMENT","EXTORTION","FAMILY OFFENSES","FORGERY/COUNTERFEITING","FRAUD","GAMBLING","KIDNAPPING","LARCENY/THEFT","LIQUOR LAWS","LOITERING","MISSING PERSON","NON-CRIMINAL","OTHER OFFENSES","PORNOGRAPHY/OBSCENE MAT","PROSTITUTION","RECOVERED VEHICLE","ROBBERY","RUNAWAY","SECONDARY CODES","SEX OFFENSES FORCIBLE","SEX OFFENSES NON FORCIBLE","STOLEN PROPERTY","SUICIDE","SUSPICIOUS OCC","TREA","TRESPASS","VANDALISM","VEHICLE THEFT","WARRANTS","WEAPON LAWS","Id")
 write.csv(submit, "submission.csv", row.names=FALSE)
+
+MultiLogLoss(test,submit)
