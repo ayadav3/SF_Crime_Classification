@@ -236,7 +236,7 @@ make_training_factors = function(df) {
   
   dow <- as.data.frame(model.matrix(~df$DayOfWeek - 1))
   names(dow) <- levels(df$DayOfWeek)
-  
+  print(dow)
   df$Month=paste("Mon",df$Month,sep = ".")
   df$Month = factor(df$Month)
   m <- as.data.frame(model.matrix(~df$Month-1))
@@ -327,3 +327,7 @@ colnames(submit) <- c("ARSON","ASSAULT","BAD CHECKS","BRIBERY","BURGLARY","DISOR
 write.csv(submit, "submission.csv", row.names=FALSE)
 
 MultiLogLoss(test,submit)
+
+
+## Penalized logistic regression implementation
+
