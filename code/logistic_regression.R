@@ -74,7 +74,7 @@ make_training_factors = function(df) {
   pY <- as.data.frame(model.matrix(~df$pY - 1))
   names(pY) <- levels(df$pY)
   
-  Category <- as.data.frame(with(df, model.matrix(~Category+0)))
+ Category <- as.data.frame(with(df, model.matrix(~Category+0)))
 
   #training set
   train <- data.frame(Category,y,dow, h, district, m,pY, as.data.frame(df$Intersection),as.data.frame(df$Night), as.data.frame(df$Week))
@@ -126,8 +126,31 @@ Id <- test$Id
 test$Intersection<-grepl("/",test$Address)
 test$Intersection<-plyr::mapvalues(test$Intersection,from=c("TRUE","FALSE"),to=c(1,0))
 
-test$Night<-ifelse(test$Hour > 22 | train$Hour < 6,1,0)
+test$Night<-ifelse(test$Hour > 22 | test$Hour < 6,1,0)
 test$Week<-ifelse(test$DayOfWeek=="Saturday" | test$DayOfWeek=="Sunday",0,1)
 test = make_training_factors(test)
 head(test)
+test <- as.matrix(test)
+matMod.tr <- as.matrix(train[,40:238])
+m<-glmnet(matMod.tr,train[,1],family="binomial")
+submit<-as.data.frame(predict(m,test,s=1e-15,type="response"))
+#numCat<-length(unique(train.tr$Category))
+pb <- txtProgressBar(min = 1, max = 39, style = 3)
+for (i in 2:39) {
+  m<-glmnet(matMod.tr,train[,i],family="binomial")
+  submit<-cbind(submit,predict(m,test,s=1e-15,type="response"))
+  setTxtProgressBar(pb, i)
+}
+submit$Id <- seq.int(0,nrow(submit)-1)
+colnames(submit) <- c("ARSON","ASSAULT","BAD CHECKS","BRIBERY","BURGLARY","DISORDERLY CONDUCT","DRIVING UNDER THE INFLUENCE","DRUG/NARCOTIC","DRUNKENNESS","EMBEZZLEMENT","EXTORTION","FAMILY OFFENSES","FORGERY/COUNTERFEITING","FRAUD","GAMBLING","KIDNAPPING","LARCENY/THEFT","LIQUOR LAWS","LOITERING","MISSING PERSON","NON-CRIMINAL","OTHER OFFENSES","PORNOGRAPHY/OBSCENE MAT","PROSTITUTION","RECOVERED VEHICLE","ROBBERY","RUNAWAY","SECONDARY CODES","SEX OFFENSES FORCIBLE","SEX OFFENSES NON FORCIBLE","STOLEN PROPERTY","SUICIDE","SUSPICIOUS OCC","TREA","TRESPASS","VANDALISM","VEHICLE THEFT","WARRANTS","WEAPON LAWS","Id")
+write.csv(submit, "submission.csv", row.names=FALSE)
+
+MMLL <- function(act, pred, eps=1e-15) {
+  pred[pred < eps] <- eps
+  pred[pred > 1 - eps] <- 1 - eps
+  -1/nrow(act)*(sum(act*log(pred)))
+}
+
+act<-as.data.frame(train.test[1:39])
+MMLL(act,pred)
 
